@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f6f2">
+  <title>冰箱灵感 · 菜谱原型</title>
+  <style>
+    :root {
+      --ink: #26352d;
+      --muted: #76827a;
+      --line: #e4e9e3;
+      --page: #f4f6f2;
+      --paper: #fff;
+      --green: #267455;
+      --green-dark: #1b563e;
+      --green-soft: #e8f2ec;
+      --tomato: #d8614b;
+      --tomato-soft: #f9ebe6;
+      --yellow: #e8bb55;
+      --shadow: 0 12px 34px rgba(38, 53, 45, .12);
+      --radius: 8px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: var(--page); color: var(--ink); font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+    button, input { font: inherit; }
+    button { color: inherit; }
+    .app-shell { min-height: 100vh; display: grid; grid-template-columns: 224px minmax(0, 1fr); max-width: 1680px; margin: 0 auto; }
+    .sidebar { position: sticky; top: 0; height: 100vh; padding: 27px 16px 20px; background: #fff; border-right: 1px solid var(--line); display: flex; flex-direction: column; z-index: 3; }
+    .brand { display: flex; align-items: center; gap: 11px; padding: 0 10px; margin-bottom: 37px; }
+    .brand-mark { display: grid; place-items: center; width: 38px; height: 38px; background: var(--green); color: #fff; border-radius: 11px; }
+    .brand-mark svg { width: 23px; height: 23px; }
+    .brand-name { font-size: 16px; font-weight: 700; letter-spacing: 0; }
+    .brand-sub { color: var(--muted); font-size: 11px; margin-top: 1px; }
+    .nav-label { color: #9aa49c; text-transform: uppercase; font-size: 10px; letter-spacing: 0; font-weight: 700; padding: 0 12px; margin: 0 0 9px; }
+    .nav-list { display: grid; gap: 4px; }
+    .nav-item { width: 100%; min-height: 44px; border: 0; border-radius: 6px; background: transparent; color: #657269; padding: 0 12px; display: flex; align-items: center; gap: 11px; text-align: left; cursor: pointer; transition: background .16s ease, color .16s ease; }
+    .nav-item svg { width: 18px; height: 18px; flex: none; }
+    .nav-item:hover { background: #f4f7f4; color: var(--ink); }
+    .nav-item.active { background: var(--green-soft); color: var(--green-dark); font-weight: 650; }
+    .nav-count { margin-left: auto; padding: 1px 7px; border-radius: 10px; background: #fff; color: var(--green); font-size: 11px; }
+    .sidebar-bottom { margin-top: auto; }
+    .week-note { background: #f5f7f4; border: 1px solid var(--line); border-radius: 7px; padding: 14px 13px; }
+    .week-note-top { display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: 11px; }
+    .week-note-top strong { color: var(--green); font-size: 12px; }
+    .week-note p { margin: 8px 0 11px; font-size: 13px; line-height: 1.5; }
+    .progress { height: 5px; background: #e2e9e3; border-radius: 8px; overflow: hidden; }
+    .progress span { display: block; height: 100%; width: 62%; background: var(--green); border-radius: inherit; }
+    .user-row { display: flex; align-items: center; gap: 10px; padding: 18px 8px 0; }
+    .avatar { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: #f6d6c9; color: #7c4537; font-size: 12px; font-weight: 700; }
+    .user-name { font-size: 13px; font-weight: 600; }
+    .user-caption { color: var(--muted); font-size: 11px; }
+
+    .main { min-width: 0; padding: 28px 42px 56px; }
+    .topbar { max-width: 1320px; margin: 0 auto; min-height: 43px; display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+    .breadcrumbs { display: flex; align-items: center; gap: 9px; color: var(--muted); font-size: 13px; }
+    .breadcrumbs strong { color: var(--ink); font-weight: 600; }
+    .top-actions { display: flex; align-items: center; gap: 10px; }
+    .icon-button { width: 40px; height: 40px; display: grid; place-items: center; position: relative; border: 1px solid var(--line); background: #fff; border-radius: 7px; cursor: pointer; }
+    .icon-button svg { width: 18px; height: 18px; }
+    .icon-button:hover { border-color: #c7d4ca; background: #fafcf9; }
+    .notify-dot { width: 6px; height: 6px; position: absolute; top: 8px; right: 8px; border: 1px solid #fff; border-radius: 50%; background: var(--tomato); }
+    .today-pill { display: flex; align-items: center; gap: 8px; padding: 8px 11px; border-radius: 6px; background: #fff; color: #66746a; font-size: 12px; }
+    .today-pill svg { width: 15px; height: 15px; color: var(--green); }
+    .content { max-width: 1320px; margin: 34px auto 0; }
+    .page-heading { position: relative; display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 27px; padding: 23px 25px 22px; overflow: hidden; background: linear-gradient(115deg, #fff 0%, #fff 68%, #f0f7f1 100%); border: 1px solid var(--line); border-radius: 12px; }
+    .page-heading:after { content: ""; position: absolute; width: 180px; height: 180px; right: -76px; top: -108px; border: 22px solid rgba(38,116,85,.08); border-radius: 50%; pointer-events: none; }
+    .eyebrow { color: var(--green); font-size: 12px; font-weight: 700; margin: 0 0 6px; }
+    h1 { font-size: 30px; line-height: 1.25; letter-spacing: 0; margin: 0; font-weight: 750; }
+    .heading-copy { color: var(--muted); margin: 8px 0 0; font-size: 14px; }
+    .heading-aside { text-align: right; color: var(--muted); font-size: 12px; padding-bottom: 3px; }
+    .heading-aside strong { display: block; color: var(--ink); font-size: 14px; margin-bottom: 3px; }
+    .workspace-grid { display: grid; grid-template-columns: minmax(0, 1fr) 280px; align-items: start; gap: 34px; }
+    .primary-column { min-width: 0; }
+    .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 13px; }
+    .section-title { display: flex; align-items: center; gap: 9px; margin: 0; font-size: 17px; font-weight: 700; }
+    .section-title svg { width: 19px; height: 19px; color: var(--green); }
+    .sub-count { font-size: 12px; font-weight: 500; color: var(--muted); }
+    .text-button { min-height: 36px; padding: 6px 8px; border: 0; background: transparent; color: var(--green); border-radius: 5px; font-size: 12px; cursor: pointer; }
+    .text-button:hover { background: var(--green-soft); }
+    .pantry-toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 16px; }
+    .search-wrap { height: 42px; max-width: 330px; flex: 1; display: flex; align-items: center; gap: 9px; padding: 0 11px; background: #fff; border: 1px solid var(--line); border-radius: 6px; }
+    .search-wrap:focus-within { border-color: #7aa991; box-shadow: 0 0 0 3px rgba(38,116,85,.1); }
+    .search-wrap svg { width: 17px; height: 17px; color: #8b978e; flex: none; }
+    .search-wrap input { width: 100%; min-width: 0; border: 0; outline: 0; color: var(--ink); background: transparent; font-size: 13px; }
+    .search-wrap input::placeholder { color: #a3aca5; }
+    .add-button { min-height: 42px; padding: 0 13px; display: flex; align-items: center; gap: 7px; border: 1px solid #cbd9ce; border-radius: 6px; background: #fff; color: var(--green-dark); font-size: 13px; cursor: pointer; white-space: nowrap; }
+    .add-button:hover { background: var(--green-soft); }
+    .add-button svg { width: 15px; height: 15px; }
+    .category-tabs { display: flex; gap: 7px; overflow-x: auto; padding: 1px 0 5px; scrollbar-width: thin; }
+    .category-tab { flex: none; min-height: 34px; padding: 0 13px; border: 1px solid transparent; border-radius: 18px; background: #e9ede8; color: #68766c; font-size: 12px; cursor: pointer; transition: background .16s ease, color .16s ease; }
+    .category-tab:hover { background: #dfe8e1; }
+    .category-tab.selected { background: var(--green); color: #fff; }
+    .ingredient-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: 10px; margin-top: 8px; padding: 8px; background: rgba(255,255,255,.72); border: 1px solid var(--line); border-radius: 10px; }
+    .ingredient { min-width: 0; min-height: 53px; display: flex; align-items: center; gap: 9px; padding: 5px 8px; background: transparent; border: 1px solid transparent; border-radius: 6px; text-align: left; cursor: pointer; transition: background .14s ease, border-color .14s ease; }
+    .ingredient:hover { background: #fff; border-color: var(--line); }
+    .ingredient.is-selected { background: #fff; border-color: #abcbb6; }
+    .ingredient-mark { width: 29px; height: 29px; flex: none; display: grid; place-items: center; border-radius: 50%; background: var(--tone, #eaf1e9); color: var(--tone-ink, var(--green)); }
+    .ingredient-initial { font-size: 12px; font-weight: 700; }
+    .ingredient-name { overflow: hidden; color: #46534a; font-size: 13px; white-space: nowrap; text-overflow: ellipsis; }
+    .ingredient-check { width: 16px; height: 16px; margin-left: auto; flex: none; display: grid; place-items: center; color: transparent; border: 1px solid #d5ded6; border-radius: 4px; }
+    .ingredient-check svg { width: 12px; height: 12px; }
+    .ingredient.is-selected .ingredient-check { color: #fff; border-color: var(--green); background: var(--green); }
+    .no-ingredients { grid-column: 1 / -1; padding: 24px 10px; text-align: center; color: var(--muted); font-size: 13px; }
+    .selected-bar { display: flex; align-items: flex-start; gap: 10px; padding: 14px 0 16px; margin-top: 12px; border-top: 1px solid var(--line); }
+    .selected-label { flex: none; padding-top: 5px; color: var(--muted); font-size: 12px; }
+    .selected-tags { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
+    .selected-tag { display: inline-flex; align-items: center; gap: 6px; padding: 3px 7px 3px 10px; border-radius: 15px; background: var(--green-soft); color: var(--green-dark); font-size: 12px; }
+    .selected-tag button { width: 19px; height: 19px; padding: 0; display: grid; place-items: center; border: 0; border-radius: 50%; background: transparent; color: #658572; cursor: pointer; }
+    .selected-tag button:hover { background: rgba(38,116,85,.14); color: var(--green-dark); }
+    .selected-tag svg { width: 12px; height: 12px; }
+    .selected-empty { color: #96a098; font-size: 12px; padding: 5px 0; }
+    .action-row { display: flex; align-items: center; gap: 14px; padding: 3px 0 22px; }
+    .shuffle-button { min-height: 46px; display: flex; align-items: center; justify-content: center; gap: 9px; padding: 0 20px; border: 0; border-radius: 6px; background: var(--green); color: #fff; font-weight: 650; cursor: pointer; box-shadow: 0 4px 10px rgba(38,116,85,.15); transition: background .16s ease, transform .16s ease; }
+    .shuffle-button:hover { background: var(--green-dark); transform: translateY(-1px); }
+    .shuffle-button:active { transform: translateY(0); }
+    .shuffle-button:disabled { background: #aab7ad; box-shadow: none; cursor: not-allowed; transform: none; }
+    .shuffle-button svg { width: 18px; height: 18px; }
+    .action-hint { color: var(--muted); font-size: 12px; }
+    .recipes-section { border-top: 1px solid var(--line); padding-top: 22px; scroll-margin-top: 20px; }
+    .recipes-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+    .recipe-heading-left { display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap; }
+    .recipe-heading-left h2 { margin: 0; font-size: 18px; }
+    .recipe-count { color: var(--muted); font-size: 12px; }
+    .pair-label { display: inline-flex; align-items: center; gap: 7px; padding: 5px 9px; border-radius: 5px; background: var(--tomato-soft); color: #a44938; font-size: 12px; }
+    .pair-label svg { width: 14px; height: 14px; }
+    .recipe-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .recipe-card { min-width: 0; overflow: hidden; background: #fff; border: 1px solid var(--line); border-radius: 10px; transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
+    .recipe-card:hover { transform: translateY(-2px); border-color: #c3d6c7; box-shadow: 0 8px 22px rgba(38,53,45,.09); }
+    .recipe-image-wrap { position: relative; height: 162px; overflow: hidden; background: #dfe7df; }
+    .recipe-image { width: 100%; height: 100%; display: block; object-fit: cover; transition: transform .3s ease; }
+    .recipe-card:hover .recipe-image { transform: scale(1.03); }
+    .recipe-card.photo-failed .recipe-image { display: none; }
+    .recipe-card.photo-failed .recipe-image-wrap { background: linear-gradient(135deg, #dce9df, #f4dfd4); }
+    .recipe-card.photo-failed .recipe-image-wrap:before { content: "今日食材灵感"; position: absolute; inset: 0; display: grid; place-items: center; color: rgba(38,83,58,.64); font-size: 13px; font-weight: 650; }
+    .recipe-image-wrap:after { content: ""; position: absolute; inset: 48% 0 0; background: linear-gradient(transparent, rgba(20,34,26,.25)); pointer-events: none; }
+    .recipe-time { position: absolute; bottom: 10px; left: 10px; z-index: 1; padding: 4px 8px; border-radius: 4px; background: rgba(255,255,255,.94); color: #46564b; font-size: 11px; }
+    .favorite-button { position: absolute; z-index: 1; top: 9px; right: 9px; width: 35px; height: 35px; display: grid; place-items: center; border: 0; border-radius: 50%; background: rgba(255,255,255,.95); color: #728078; cursor: pointer; }
+    .favorite-button:hover { color: var(--tomato); }
+    .favorite-button.is-favorite { color: var(--tomato); }
+    .favorite-button svg { width: 18px; height: 18px; }
+    .recipe-body { padding: 13px 14px 14px; }
+    .recipe-title-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .recipe-title { margin: 0; font-size: 16px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .difficulty { flex: none; color: #829087; font-size: 11px; }
+    .recipe-desc { margin: 6px 0 11px; color: #78837b; font-size: 12px; line-height: 1.5; min-height: 36px; }
+    .recipe-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-top: 1px solid #edf0ed; padding-top: 10px; }
+    .match-list { display: flex; flex-wrap: wrap; gap: 5px; min-width: 0; }
+    .match-chip { padding: 3px 7px; border-radius: 4px; background: #eff5f0; color: #52705c; font-size: 10px; }
+    .details-button { min-height: 32px; flex: none; padding: 4px 7px; border: 0; border-radius: 4px; background: transparent; color: var(--green); font-size: 12px; cursor: pointer; }
+    .details-button:hover { background: var(--green-soft); }
+    .empty-results { grid-column: 1 / -1; padding: 33px 18px; text-align: center; background: #fff; border: 1px dashed #cdd9cf; border-radius: 7px; }
+    .empty-results svg { width: 30px; height: 30px; color: var(--green); }
+    .empty-results h3 { margin: 6px 0 3px; font-size: 15px; }
+    .empty-results p { margin: 0; color: var(--muted); font-size: 12px; }
+
+    .aside { position: sticky; top: 24px; }
+    .inspiration-panel { overflow: hidden; background: var(--green-dark); border-radius: 7px; color: #fff; }
+    .inspiration-photo { height: 150px; position: relative; overflow: hidden; background: #637b5b; }
+    .inspiration-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .inspiration-photo:after { content: ""; position: absolute; inset: 35% 0 0; background: linear-gradient(transparent, rgba(27,86,62,.74)); }
+    .photo-caption { position: absolute; z-index: 1; left: 16px; bottom: 13px; color: #fff; font-size: 12px; }
+    .inspiration-content { padding: 15px 16px 17px; }
+    .inspiration-label { display: flex; align-items: center; gap: 7px; color: #b7d7c5; font-size: 11px; }
+    .inspiration-label svg { width: 15px; height: 15px; }
+    .inspiration-content h2 { margin: 7px 0 4px; font-size: 18px; }
+    .inspiration-content p { margin: 0; color: #d3e4d9; font-size: 12px; line-height: 1.6; }
+    .inspiration-action { width: 100%; min-height: 39px; display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 14px; border: 0; border-radius: 5px; background: #fff; color: var(--green-dark); font-size: 12px; font-weight: 650; cursor: pointer; }
+    .inspiration-action:hover { background: #eef5f0; }
+    .inspiration-action svg { width: 15px; height: 15px; }
+    .aside-section { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); }
+    .aside-section h3 { margin: 0 0 13px; font-size: 14px; }
+    .tip-row { display: flex; align-items: flex-start; gap: 10px; }
+    .tip-icon { width: 30px; height: 30px; flex: none; display: grid; place-items: center; border-radius: 6px; background: #fff1d7; color: #9b7023; }
+    .tip-icon svg { width: 16px; height: 16px; }
+    .tip-copy { color: #66736a; font-size: 12px; line-height: 1.55; }
+    .tip-copy strong { display: block; color: var(--ink); font-size: 13px; margin-bottom: 2px; }
+    .pantry-tip { margin-top: 14px; padding: 11px 12px; border-radius: 5px; background: #fff; color: #78847b; font-size: 11px; line-height: 1.6; }
+    .pantry-tip strong { color: #536158; }
+    .aside-link { min-height: 40px; width: 100%; margin-top: 12px; display: flex; align-items: center; justify-content: space-between; padding: 0 10px; background: #fff; border: 1px solid var(--line); border-radius: 5px; color: #657269; font-size: 12px; text-align: left; cursor: pointer; }
+    .aside-link:hover { border-color: #bdcfc1; color: var(--green); }
+    .aside-link span { display: flex; align-items: center; gap: 8px; }
+    .aside-link svg { width: 16px; height: 16px; }
+    .aside-link .arrow { color: #9aa59c; }
+    .mobile-brand { display: none; }
+
+    .modal-backdrop { position: fixed; inset: 0; z-index: 10; display: none; align-items: center; justify-content: center; padding: 24px; background: rgba(24,38,30,.52); }
+    .modal-backdrop.open { display: flex; }
+    .recipe-modal { position: relative; width: min(640px, 100%); max-height: min(88vh, 800px); overflow: auto; background: #fff; border-radius: 9px; box-shadow: var(--shadow); }
+    .modal-image { width: 100%; height: 230px; display: block; object-fit: cover; background: #e4ebe4; }
+    .modal-content { padding: 21px 24px 25px; }
+    .modal-close { position: absolute; top: 12px; right: 12px; width: 38px; height: 38px; border: 0; border-radius: 50%; background: rgba(255,255,255,.94); display: grid; place-items: center; cursor: pointer; }
+    .modal-close svg { width: 18px; height: 18px; }
+    .modal-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .modal-title-row h2 { margin: 0; font-size: 23px; }
+    .modal-title-row p { margin: 5px 0 0; color: var(--muted); font-size: 13px; }
+    .modal-favorite { flex: none; }
+    .detail-line { display: flex; gap: 7px; flex-wrap: wrap; margin: 16px 0 18px; }
+    .detail-line span { padding: 5px 8px; border-radius: 4px; background: #f1f5f1; color: #5a6a5f; font-size: 11px; }
+    .modal-content h3 { margin: 17px 0 9px; font-size: 14px; }
+    .detail-ingredients { display: flex; gap: 7px; flex-wrap: wrap; }
+    .detail-ingredients span { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 5px; color: #56645a; font-size: 12px; }
+    .detail-ingredients span i { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+    .steps { padding: 0; margin: 0; list-style: none; counter-reset: step; }
+    .steps li { counter-increment: step; position: relative; padding: 0 0 12px 34px; color: #606d64; font-size: 13px; line-height: 1.65; }
+    .steps li:before { content: counter(step); position: absolute; left: 0; top: 0; width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; background: var(--green-soft); color: var(--green); font-size: 11px; font-weight: 700; }
+    .toast { position: fixed; left: 50%; bottom: 26px; z-index: 15; transform: translate(-50%, 12px); opacity: 0; pointer-events: none; padding: 10px 15px; border-radius: 6px; background: #26352d; color: #fff; font-size: 13px; transition: opacity .18s ease, transform .18s ease; }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+    button:focus-visible, input:focus-visible { outline: 3px solid rgba(38,116,85,.35); outline-offset: 2px; }
+    @media (max-width: 1180px) {
+      .main { padding-left: 30px; padding-right: 30px; }
+      .workspace-grid { grid-template-columns: minmax(0, 1fr) 250px; gap: 24px; }
+      .ingredient-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .recipe-image-wrap { height: 145px; }
+    }
+    @media (max-width: 900px) {
+      .app-shell { grid-template-columns: 72px minmax(0,1fr); }
+      .sidebar { padding-left: 10px; padding-right: 10px; align-items: center; }
+      .brand { padding: 0; margin-bottom: 34px; }
+      .brand-copy, .nav-label, .nav-item span, .nav-count, .sidebar-bottom { display: none; }
+      .nav-list { width: 100%; }
+      .nav-item { justify-content: center; padding: 0; }
+      .nav-item svg { width: 20px; height: 20px; }
+      .main { padding-left: 24px; padding-right: 24px; }
+      .workspace-grid { grid-template-columns: minmax(0,1fr); }
+      .aside { display: grid; position: static; grid-template-columns: 1fr 1fr; align-items: start; gap: 20px; }
+      .aside-section { margin: 0; padding: 0; border: 0; }
+      .aside-section:last-child { display: none; }
+    }
+    @media (max-width: 620px) {
+      .app-shell { display: block; padding-bottom: 70px; }
+      .sidebar { position: fixed; top: auto; bottom: 0; left: 0; right: 0; height: 62px; padding: 6px 10px max(6px, env(safe-area-inset-bottom)); display: block; border: 0; border-top: 1px solid var(--line); background: rgba(255,255,255,.97); }
+      .brand, .nav-label, .brand-copy, .sidebar-bottom { display: none; }
+      .nav-list { display: grid; grid-template-columns: repeat(4,1fr); gap: 3px; height: 50px; }
+      .nav-item { min-height: 48px; display: grid; place-items: center; align-content: center; gap: 2px; padding: 2px 0; border-radius: 5px; font-size: 10px; }
+      .nav-item span { display: block; }
+      .nav-item .nav-count { display: none; }
+      .nav-item svg { width: 18px; height: 18px; }
+      .main { padding: 16px 17px 35px; }
+      .main, .content, .workspace-grid, .primary-column { width: 100%; min-width: 0; }
+      .topbar { min-height: 36px; }
+      .breadcrumbs { display: none; }
+      .today-pill { padding: 7px 9px; }
+      .icon-button { width: 36px; height: 36px; }
+      .content { margin-top: 23px; }
+      .page-heading { align-items: flex-start; margin-bottom: 22px; padding: 18px 17px 17px; border-radius: 10px; }
+      h1 { font-size: 25px; }
+      .heading-copy { max-width: 280px; font-size: 13px; }
+      .heading-aside { display: none; }
+      .workspace-grid { gap: 24px; }
+      .section-title { font-size: 16px; }
+      .pantry-toolbar { gap: 7px; }
+      .search-wrap { height: 41px; max-width: none; min-width: 0; }
+      .add-button { width: 42px; min-width: 42px; flex: 0 0 42px; justify-content: center; padding: 0; font-size: 0; }
+      .add-button svg { width: 18px; height: 18px; }
+      .ingredient-list { width: 100%; grid-template-columns: repeat(2, minmax(0,1fr)); column-gap: 5px; }
+      .ingredient { min-height: 50px; padding-left: 5px; padding-right: 5px; gap: 7px; }
+      .ingredient-mark { width: 27px; height: 27px; }
+      .selected-bar { gap: 6px; }
+      .selected-label { max-width: 48px; }
+      .action-row { align-items: flex-start; flex-direction: column; gap: 8px; padding-bottom: 19px; }
+      .shuffle-button { width: 100%; }
+      .recipe-grid { grid-template-columns: 1fr; gap: 12px; }
+      .recipe-card { display: grid; grid-template-columns: 118px minmax(0,1fr); min-height: 150px; }
+      .recipe-image-wrap { height: 100%; min-height: 150px; }
+      .recipe-time { left: 7px; bottom: 7px; padding: 3px 6px; font-size: 10px; }
+      .favorite-button { top: 7px; right: 7px; width: 31px; height: 31px; }
+      .recipe-body { display: flex; flex-direction: column; justify-content: center; padding: 11px 10px; }
+      .recipe-title { font-size: 14px; }
+      .recipe-desc { min-height: unset; margin: 5px 0 8px; font-size: 11px; }
+      .recipe-meta { align-items: flex-end; padding-top: 8px; }
+      .match-chip { padding: 3px 5px; font-size: 9px; }
+      .details-button { font-size: 11px; padding: 3px 2px; }
+      .aside { grid-template-columns: 1fr; }
+      .aside-section { display: none; }
+      .inspiration-panel { display: grid; grid-template-columns: 114px minmax(0,1fr); min-height: 131px; }
+      .inspiration-photo { height: 100%; min-height: 131px; }
+      .inspiration-content { padding: 12px 13px; }
+      .inspiration-content h2 { font-size: 15px; margin: 4px 0; }
+      .inspiration-content p { font-size: 11px; }
+      .inspiration-action { min-height: 34px; margin-top: 8px; font-size: 11px; }
+      .photo-caption { display: none; }
+      .modal-backdrop { padding: 12px; }
+      .recipe-modal { max-height: 92vh; }
+      .modal-image { height: 175px; }
+      .modal-content { padding: 17px 17px 21px; }
+      .modal-title-row h2 { font-size: 20px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *:before, *:after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="主导航">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-8"/><path d="M12 13C5.6 13 4.2 8.6 4.2 5.5 8.4 5.5 12 7.7 12 13Z"/><path d="M12 11.5c.7-4 3.4-6 7.8-6-0.2 3.7-2.2 6.8-7.8 7.3"/></svg></div>
+        <div class="brand-copy"><div class="brand-name">冰箱灵感</div><div class="brand-sub">让每样食材都有去处</div></div>
+      </div>
+      <p class="nav-label">我的厨房</p>
+      <nav class="nav-list">
+        <button class="nav-item active" data-nav="fridge" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M5 11h14M9 7v1M9 15v2"/></svg><span>冰箱食材</span></button>
+        <button class="nav-item" data-nav="recipes" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 1 4 16.5z"/><path d="M4 6v11M8 7h8M8 11h7"/></svg><span>菜谱灵感</span></button>
+        <button class="nav-item" data-nav="favorites" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 8.8c0 5-8.5 10-8.5 10s-8.5-5-8.5-10A4.7 4.7 0 0 1 12 6a4.7 4.7 0 0 1 8.5 2.8Z"/></svg><span>我的收藏</span><span class="nav-count" id="favoriteCount">0</span></button>
+        <button class="nav-item" data-nav="history" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 12a8.5 8.5 0 1 0 2.3-5.8L3.5 8.5"/><path d="M3.5 4.5v4h4M12 7v5l3.3 2"/></svg><span>最近搭配</span></button>
+      </nav>
+      <div class="sidebar-bottom">
+        <section class="week-note" aria-label="食材利用情况">
+          <div class="week-note-top"><span>本周食材利用</span><strong>5 / 8</strong></div>
+          <p>已经让 5 样食材变成了美味</p>
+          <div class="progress" aria-label="完成 62%"><span></span></div>
+        </section>
+        <div class="user-row"><div class="avatar" aria-hidden="true">林</div><div><div class="user-name">林同学</div><div class="user-caption">家庭厨房</div></div></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="breadcrumbs"><span>我的厨房</span><span aria-hidden="true">/</span><strong>今天吃什么</strong></div>
+        <div class="top-actions">
+          <div class="today-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M7.5 3v4M16.5 3v4M3.5 9.5h17"/></svg><span id="todayText">今天</span></div>
+          <button class="icon-button" id="notificationButton" type="button" aria-label="查看厨房提醒" title="厨房提醒"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><i class="notify-dot"></i></button>
+        </div>
+      </header>
+
+      <div class="content">
+        <header class="page-heading">
+          <div><p class="eyebrow">FRIDGE TO TABLE</p><h1>冰箱里有什么？</h1><p class="heading-copy">选好手边的食材，让下一顿饭从随机搭配开始。</p></div>
+          <div class="heading-aside"><strong>今天，给晚餐一点灵感</strong><span>日常食材 · 简单好做</span></div>
+        </header>
+
+        <div class="workspace-grid">
+          <div class="primary-column">
+            <section aria-labelledby="pantryTitle">
+              <div class="section-heading">
+                <h2 class="section-title" id="pantryTitle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M5 11h14M9 7v1M9 15v2"/></svg>选择你的食材 <span class="sub-count" id="selectionCount">已选 7 样</span></h2>
+                <button class="text-button" id="clearSelection" type="button">清空选择</button>
+              </div>
+              <div class="pantry-toolbar">
+                <label class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.5 4.5"/></svg><span class="sr-only">搜索或输入食材</span><input id="ingredientSearch" type="search" placeholder="搜索冰箱食材" autocomplete="off"></label>
+                <button class="add-button" id="addIngredient" type="button" aria-label="添加食材"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>添加食材</span></button>
+              </div>
+              <div class="category-tabs" id="categoryTabs" role="tablist" aria-label="食材分类"></div>
+              <div class="ingredient-list" id="ingredientList" aria-label="冰箱食材"></div>
+              <div class="selected-bar"><span class="selected-label">已选食材</span><div class="selected-tags" id="selectedTags" aria-live="polite"></div></div>
+              <div class="action-row">
+                <button class="shuffle-button" id="shuffleButton" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 3 4 4-4 4M4 17l3-3a5 5 0 0 1 7 0l3 3"/><path d="M20 17h-2.5a5 5 0 0 1-3.5-1.5L7 8.5A5 5 0 0 0 3.5 7H3M16 17l4-4"/></svg>随机搭配，列出能做的菜</button>
+                <span class="action-hint" id="actionHint">主食材都已选齐的菜谱会全部显示</span>
+              </div>
+            </section>
+
+            <section class="recipes-section" id="recipesSection" aria-labelledby="recipesTitle">
+              <div class="recipes-heading">
+                <div class="recipe-heading-left"><h2 id="recipesTitle">这些食材能做</h2><span class="recipe-count" id="recipeCount">正在筛选菜谱</span></div>
+                <div class="pair-label" id="pairLabel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 15.5 5 19a3.5 3.5 0 0 1-5-5l5-5a3.5 3.5 0 0 1 5 5" transform="translate(2 -1)"/><path d="m15.5 8.5 3.5-3.5a3.5 3.5 0 0 1 5 5l-5 5a3.5 3.5 0 0 1-5-5" transform="translate(-2 1)"/><path d="m9 15 6-6"/></svg><span class="pair-prefix" id="pairPrefix">随机灵感</span><span id="pairText">番茄 × 鸡蛋</span></div>
+              </div>
+              <div class="recipe-grid" id="recipeGrid" aria-live="polite"></div>
+            </section>
+          </div>
+
+          <aside class="aside" aria-label="厨房灵感">
+            <section class="inspiration-panel">
+              <div class="inspiration-photo"><img src="https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=800&q=85" alt="一份新鲜蔬菜沙拉" loading="lazy"><span class="photo-caption">新鲜食材，认真吃饭</span></div>
+              <div class="inspiration-content"><div class="inspiration-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v2M5.6 5.6 7 7M3 12h2M19 12h2M17 7l1.4-1.4M8 16.5a5 5 0 1 1 8 0c-.8.7-1 1.2-1 2h-6c0-.8-.2-1.3-1-2ZM9 21h6"/></svg>今日厨房灵感</div><h2>从手边食材找菜</h2><p>随机抽取一组灵感，同时列出所有主食材齐全的菜谱，挑一道喜欢的就开始。</p><button class="inspiration-action" id="asideShuffle" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 3 4 4-4 4M4 17l3-3a5 5 0 0 1 7 0l3 3"/><path d="M20 17h-2.5a5 5 0 0 1-3.5-1.5L7 8.5A5 5 0 0 0 3.5 7H3M16 17l4-4"/></svg>再抽一组灵感</button></div>
+            </section>
+            <section class="aside-section"><h3>食材小贴士</h3><div class="tip-row"><div class="tip-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M4.5 7.5l15 9M4.5 16.5l15-9"/><circle cx="12" cy="12" r="9"/></svg></div><div class="tip-copy"><strong>让蔬菜保持新鲜</strong>叶菜用厨房纸轻轻包好，再放入保鲜袋冷藏。</div></div><div class="pantry-tip"><strong>顺手加一点：</strong>家里的盐、油、酱油等常用调味料会默认算作已有，不用特意勾选。</div></section>
+            <section class="aside-section"><h3>快速查看</h3><button class="aside-link" id="favoritesLink" type="button"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 8.8c0 5-8.5 10-8.5 10s-8.5-5-8.5-10A4.7 4.7 0 0 1 12 6a4.7 4.7 0 0 1 8.5 2.8Z"/></svg>我收藏的菜谱</span><svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button></section>
+          </aside>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="modalBackdrop" role="presentation">
+    <section class="recipe-modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <button class="modal-close" id="modalClose" type="button" aria-label="关闭菜谱详情"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+      <img class="modal-image" id="modalImage" alt="">
+      <div class="modal-content" id="modalContent"></div>
+    </section>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const ingredients = [
+      {name:'番茄', category:'蔬菜', tone:'#f9e8e2', ink:'#c95643'}, {name:'土豆', category:'蔬菜', tone:'#f5eddc', ink:'#9b783d'},
+      {name:'青椒', category:'蔬菜', tone:'#e6f1e6', ink:'#43834f'}, {name:'香菇', category:'蔬菜', tone:'#eee8df', ink:'#806444'},
+      {name:'西兰花', category:'蔬菜', tone:'#e4f0e4', ink:'#43834f'}, {name:'洋葱', category:'蔬菜', tone:'#f4e6ed', ink:'#9b597b'},
+      {name:'胡萝卜', category:'蔬菜', tone:'#f9e9db', ink:'#c37432'}, {name:'菠菜', category:'蔬菜', tone:'#e2f0e7', ink:'#3b8054'},
+      {name:'鸡蛋', category:'肉蛋', tone:'#f8efd7', ink:'#ab812c'}, {name:'鸡胸肉', category:'肉蛋', tone:'#f6e8e2', ink:'#b66b52'},
+      {name:'牛肉', category:'肉蛋', tone:'#f3e4e2', ink:'#a34e48'}, {name:'猪肉', category:'肉蛋', tone:'#f4e8e2', ink:'#b77962'},
+      {name:'豆腐', category:'豆制品', tone:'#eef0e8', ink:'#75805e'}, {name:'米饭', category:'主食', tone:'#eeeee6', ink:'#80806c'},
+      {name:'面条', category:'主食', tone:'#f2ecdc', ink:'#927842'}, {name:'玉米', category:'主食', tone:'#f8efd2', ink:'#a7872b'}
+    ];
+    const recipes = [
+      {id:'tomato-egg', title:'番茄炒蛋', main:['番茄','鸡蛋'], extras:['葱','盐','白糖'], minutes:12, level:'快手家常', desc:'酸甜番茄裹住嫩滑鸡蛋，配米饭刚刚好。', image:'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=900&q=85', steps:['番茄切块，鸡蛋加少许盐打散；葱切成小段。','热锅少油，把鸡蛋炒至凝固后先盛出。','锅中再放少许油，炒软番茄并加一小勺糖。','倒回鸡蛋翻炒均匀，撒葱花即可出锅。']},
+      {id:'tomato-rice', title:'番茄鸡蛋盖饭', main:['番茄','鸡蛋','米饭'], extras:['葱','盐','生抽'], minutes:15, level:'一人食', desc:'把熟悉的番茄炒蛋做得多汁一点，浇在热米饭上。', image:'https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=900&q=85', steps:['番茄切小块，鸡蛋打散，准备一碗热米饭。','鸡蛋炒至半熟后盛出，番茄下锅炒出汁水。','加少许生抽和盐调味，倒入鸡蛋轻轻翻匀。','连汤汁一起浇在米饭上，趁热享用。']},
+      {id:'tomato-noodles', title:'番茄鸡蛋面', main:['番茄','鸡蛋','面条'], extras:['葱','盐','香油'], minutes:18, level:'暖心主食', desc:'一锅煮出酸香汤底，忙碌的晚上也能吃口热乎的。', image:'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=900&q=85', steps:['番茄切块，鸡蛋打散，另起锅烧水煮面。','锅中少油炒香番茄，加一碗水煮至软烂。','淋入蛋液，轻轻搅成蛋花，用盐调味。','放入煮好的面条，出锅前点几滴香油。']},
+      {id:'pepper-potato', title:'青椒土豆丝', main:['青椒','土豆'], extras:['蒜','醋','盐'], minutes:15, level:'清爽下饭', desc:'清脆土豆丝带一点微酸，简单炒一盘就很下饭。', image:'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=900&q=85', steps:['土豆去皮切细丝，用清水冲去表面淀粉。','青椒去籽切丝，蒜切末备用。','热锅下蒜末和土豆丝，大火快速翻炒。','加入青椒丝、盐和少量醋，断生后出锅。']},
+      {id:'mushroom-chicken', title:'香菇滑鸡', main:['香菇','鸡胸肉'], extras:['姜','生抽','淀粉'], minutes:20, level:'鲜香嫩滑', desc:'香菇吸饱鸡肉鲜汁，腌一会儿再炒，口感更嫩。', image:'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&w=900&q=85', steps:['鸡胸肉切片，加生抽和淀粉抓匀腌十分钟。','香菇切片，姜切丝。','先把鸡肉滑炒至变色，盛出备用。','香菇炒软后放回鸡肉，加少量水焖两分钟。']},
+      {id:'mushroom-rice', title:'香菇鸡肉焖饭', main:['香菇','鸡胸肉','米饭'], extras:['生抽','蚝油','葱'], minutes:25, level:'省事一锅出', desc:'香菇、鸡肉和米饭一起焖，少洗一口锅。', image:'https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=900&q=85', steps:['鸡胸肉切丁，香菇切片，用生抽稍微腌一下。','炒香鸡肉和香菇，加入一勺蚝油调味。','倒入米饭和少量水，盖盖焖至热透入味。','打开锅盖翻松米饭，撒上葱花即可。']},
+      {id:'chicken-potato', title:'土豆炖鸡', main:['土豆','鸡胸肉'], extras:['姜','生抽','盐'], minutes:28, level:'暖胃炖菜', desc:'土豆炖得绵软入味，汤汁拌饭也很香。', image:'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&w=900&q=85', steps:['鸡肉切块，土豆切滚刀块，姜切片。','鸡肉下锅煎至表面微黄，加入姜片和生抽。','放入土豆和没过食材一半的热水。','小火炖至土豆软糯，加盐调味收汁。']},
+      {id:'beef-onion', title:'洋葱炒牛肉', main:['洋葱','牛肉'], extras:['生抽','淀粉','黑胡椒'], minutes:16, level:'大火快炒', desc:'洋葱炒出甜味后，和嫩牛肉一起快速翻炒。', image:'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=900&q=85', steps:['牛肉切薄片，加生抽和淀粉抓匀腌十分钟。','洋葱切丝，热锅把牛肉快速滑炒至变色。','锅中留底油，炒软洋葱后倒回牛肉。','加少许黑胡椒，翻炒均匀即可。']},
+      {id:'broccoli-beef', title:'西兰花炒牛肉', main:['西兰花','牛肉'], extras:['蒜','生抽','蚝油'], minutes:20, level:'营养搭配', desc:'牛肉补足香气，西兰花保持一点脆嫩更好吃。', image:'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=900&q=85', steps:['西兰花掰成小朵，焯水一分钟后捞出。','牛肉切片，加少量生抽和淀粉腌十分钟。','热锅炒香蒜片，快速炒熟牛肉。','放入西兰花，加少量蚝油翻匀。']},
+      {id:'home-tofu', title:'香菇青椒烧豆腐', main:['香菇','青椒','豆腐'], extras:['生抽','蚝油','淀粉'], minutes:20, level:'清淡家常', desc:'豆腐吸收香菇的鲜味，青椒让口感更清爽。', image:'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=900&q=85', steps:['豆腐切块，香菇和青椒切片。','少油把豆腐煎至两面金黄后盛出。','香菇炒软，放回豆腐并加少量生抽和水。','加入青椒焖两分钟，勾薄芡后出锅。']},
+      {id:'pepper-chicken-rice', title:'青椒鸡肉炒饭', main:['青椒','鸡胸肉','米饭'], extras:['鸡蛋','生抽','葱'], minutes:18, level:'一锅快手', desc:'鸡肉和青椒炒出香气，再和米饭一起炒得粒粒分明。', image:'https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=900&q=85', steps:['鸡胸肉切小丁，青椒切丁，米饭提前拨散。','鸡肉加少许生抽抓匀，热锅炒至变色。','放入青椒和米饭，大火翻炒至米饭热透。','按口味加盐和葱花，翻匀后出锅。']},
+      {id:'tomato-potato-chicken', title:'番茄土豆鸡肉煲', main:['番茄','土豆','鸡胸肉'], extras:['洋葱','生抽','盐'], minutes:30, level:'暖胃炖菜', desc:'番茄煮出酸甜汤汁，土豆和鸡肉吸足味道。', image:'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&w=900&q=85', steps:['鸡肉切块，番茄切块，土豆切滚刀块。','鸡肉下锅煎至微黄，放入番茄炒软出汁。','加入土豆和适量热水，小火炖约二十分钟。','土豆软糯后用盐调味，收浓汤汁即可。']},
+      {id:'mushroom-potato-rice', title:'香菇土豆焖饭', main:['香菇','土豆','米饭'], extras:['生抽','葱','盐'], minutes:25, level:'省事一锅出', desc:'香菇鲜香配上绵软土豆，热饭一锅就能完成。', image:'https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=900&q=85', steps:['土豆切小丁，香菇切片，米饭拨松。','锅中炒香香菇和土豆丁，加少许生抽。','倒入米饭和小半碗水，盖盖焖至土豆熟软。','打开锅盖翻松，加盐调味并撒上葱花。']},
+      {id:'pepper-mushroom-chicken', title:'青椒香菇鸡丁', main:['青椒','香菇','鸡胸肉'], extras:['姜','生抽','淀粉'], minutes:20, level:'鲜香下饭', desc:'鸡丁嫩、香菇香，青椒最后下锅保留清脆口感。', image:'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&w=900&q=85', steps:['鸡胸肉切丁，用生抽和淀粉腌十分钟。','青椒和香菇切丁，姜切末。','先炒鸡丁至变色盛出，再把香菇炒软。','放回鸡丁并加入青椒，大火翻炒至断生。']},
+      {id:'pepper-mushroom-egg', title:'青椒香菇炒蛋', main:['青椒','香菇','鸡蛋'], extras:['蒜','盐','生抽'], minutes:15, level:'简单家常', desc:'鸡蛋柔软、香菇浓香，青椒让整盘菜更爽口。', image:'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=900&q=85', steps:['鸡蛋打散，青椒和香菇切片，蒜切末。','热锅炒熟鸡蛋，盛出备用。','锅中少油炒香蒜末和香菇，再放入青椒。','青椒断生后倒回鸡蛋，加盐和生抽翻匀。']}
+    ];
+    const categories = ['全部','蔬菜','肉蛋','豆制品','主食'];
+    const initialSelected = ['番茄','鸡蛋','土豆','青椒','鸡胸肉','香菇','米饭'];
+    let selected = new Set(initialSelected);
+    let customIngredients = [];
+    let activeCategory = '全部';
+    let searchTerm = '';
+    let currentPair = [];
+    let currentRecipes = recipes.filter(recipe=>recipe.main.every(item=>selected.has(item)));
+    let favorites = new Set();
+    try { favorites = new Set(JSON.parse(localStorage.getItem('fridge-recipe-favorites') || '[]')); } catch(e) {}
+    let history = [];
+    let toastTimer;
+    const $ = id => document.getElementById(id);
+    const iconCheck = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 8 3.2 3.2L13 4.5"/></svg>';
+    const iconClose = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>';
+    const iconHeart = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 8.8c0 5-8.5 10-8.5 10s-8.5-5-8.5-10A4.7 4.7 0 0 1 12 6a4.7 4.7 0 0 1 8.5 2.8Z"/></svg>';
+    const iconSearchMark = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2" fill="white"/><circle cx="15" cy="12" r="2" fill="white"/><circle cx="8" cy="17" r="2" fill="white"/></svg>';
+    function escapeHtml(value) { return String(value).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char])); }
+    function showToast(message) { const toast=$('toast'); toast.textContent=message; toast.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>toast.classList.remove('show'),2200); }
+    function renderCategories() {
+      $('categoryTabs').innerHTML = categories.map(category => '<button type="button" role="tab" aria-selected="'+(activeCategory===category)+'" class="category-tab '+(activeCategory===category?'selected':'')+'" data-category="'+category+'">'+category+'</button>').join('');
+    }
+    function renderIngredients() {
+      const fullList = ingredients.concat(customIngredients.map(name=>({name,category:'自定义',tone:'#e8f0eb',ink:'#52745e'})));
+      const visible = fullList.filter(item => (activeCategory==='全部'||item.category===activeCategory) && item.name.toLowerCase().includes(searchTerm.toLowerCase()));
+      if (!visible.length) { $('ingredientList').innerHTML='<div class="no-ingredients">没有找到食材。按回车或点击“添加食材”把它加入冰箱。</div>'; return; }
+      $('ingredientList').innerHTML=visible.map(item=>{
+        const isSelected=selected.has(item.name);
+        return '<button type="button" class="ingredient '+(isSelected?'is-selected':'')+'" data-ingredient="'+escapeHtml(item.name)+'" aria-pressed="'+isSelected+'" style="--tone:'+item.tone+';--tone-ink:'+item.ink+'"><span class="ingredient-mark" aria-hidden="true"><span class="ingredient-initial">'+escapeHtml(item.name.slice(0,1))+'</span></span><span class="ingredient-name">'+escapeHtml(item.name)+'</span><span class="ingredient-check" aria-hidden="true">'+iconCheck+'</span></button>';
+      }).join('');
+    }
+    function renderSelected() {
+      const items=Array.from(selected);
+      $('selectionCount').textContent='已选 '+items.length+' 样';
+      $('selectedTags').innerHTML=items.length?items.map(name=>'<span class="selected-tag">'+escapeHtml(name)+'<button type="button" data-remove="'+escapeHtml(name)+'" aria-label="移除'+escapeHtml(name)+'">'+iconClose+'</button></span>').join(''):'<span class="selected-empty">还没选择食材，点一下上面的食材加入</span>';
+      $('shuffleButton').disabled=items.length<2;
+      $('actionHint').textContent=items.length<2?'至少选择两样食材':'全部可做菜谱都会显示，点击可打乱顺序';
+    }
+    function shuffle(array) { const copy=array.slice(); for(let i=copy.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[copy[i],copy[j]]=[copy[j],copy[i]];} return copy; }
+    function availablePairs() {
+      const pairs=new Map();
+      recipes.forEach(recipe=>{
+        const available=recipe.main.filter(item=>selected.has(item));
+        if(available.length!==recipe.main.length)return;
+        for(let i=0;i<available.length;i++) for(let j=i+1;j<available.length;j++) {
+          const key=[available[i],available[j]].sort((a,b)=>a.localeCompare(b,'zh-CN')).join('|');
+          if(!pairs.has(key)) pairs.set(key,key.split('|'));
+        }
+      });
+      return Array.from(pairs.values());
+    }
+    function recipeCard(recipe) {
+      const matches=recipe.main.filter(item=>selected.has(item));
+      return '<article class="recipe-card" data-card="'+recipe.id+'"><div class="recipe-image-wrap"><img class="recipe-image" src="'+recipe.image+'" alt="'+escapeHtml(recipe.title)+'" loading="lazy"><span class="recipe-time">'+recipe.minutes+' 分钟</span><button type="button" class="favorite-button '+(favorites.has(recipe.id)?'is-favorite':'')+'" data-favorite="'+recipe.id+'" aria-label="'+(favorites.has(recipe.id)?'取消收藏 ':'收藏 ')+escapeHtml(recipe.title)+'" aria-pressed="'+favorites.has(recipe.id)+'">'+iconHeart+'</button></div><div class="recipe-body"><div class="recipe-title-row"><h3 class="recipe-title">'+escapeHtml(recipe.title)+'</h3><span class="difficulty">'+escapeHtml(recipe.level)+'</span></div><p class="recipe-desc">'+escapeHtml(recipe.desc)+'</p><div class="recipe-meta"><div class="match-list">'+matches.map(item=>'<span class="match-chip">'+escapeHtml(item)+'</span>').join('')+'</div><button class="details-button" type="button" data-detail="'+recipe.id+'">看做法 ›</button></div></div></article>';
+    }
+    function renderRecipes() {
+      const collection=currentPair[0]==='收藏菜谱';
+      $('recipesTitle').textContent=collection?'我的收藏':'这些食材能做';
+      $('pairPrefix').textContent=collection?'':currentPair.length>1?'随机灵感':'已选食材';
+      $('pairText').textContent=collection?'全部收藏':currentPair.length?currentPair.join(' × '):'全部组合';
+      if(!currentRecipes.length) {
+        $('recipeCount').textContent='暂无匹配菜谱';
+        $('recipeGrid').innerHTML='<div class="empty-results">'+iconSearchMark+'<h3>这组食材还没有找到菜谱</h3><p>换一组食材试试，也可以再添加一些常用食材。</p></div>';
+        return;
+      }
+      $('recipeCount').textContent=collection?'共收藏 '+currentRecipes.length+' 道':currentRecipes.length+' 道主食材都已选齐';
+      $('recipeGrid').innerHTML=currentRecipes.map(recipeCard).join('');
+      $('recipeGrid').querySelectorAll('.recipe-image').forEach(img=>img.addEventListener('error',()=>img.closest('.recipe-card').classList.add('photo-failed'),{once:true}));
+    }
+    function refreshMatches() {
+      currentPair=[];
+      currentRecipes=recipes.filter(recipe=>recipe.main.every(item=>selected.has(item)));
+      renderRecipes();
+    }
+    function generateRecipes(scrollToResults) {
+      const pairs=shuffle(availablePairs());
+      if(!pairs.length) {
+        currentPair=Array.from(selected).slice(0,2);
+        currentRecipes=[];
+        renderRecipes();
+        if(selected.size<2) showToast('再选至少两样食材，就能开始搭配啦');
+        else showToast('这组食材暂时没有匹配菜谱，换组试试');
+      } else {
+        currentPair=pairs[0];
+        currentRecipes=shuffle(recipes.filter(recipe=>recipe.main.every(item=>selected.has(item))));
+        history.unshift({pair:currentPair.slice(),recipes:currentRecipes.map(r=>r.id)});
+        renderRecipes();
+      }
+      if(scrollToResults) $('recipesSection').scrollIntoView({behavior:'smooth',block:'start'});
+    }
+    function toggleFavorite(id) {
+      if(favorites.has(id)) { favorites.delete(id); showToast('已从收藏移除'); }
+      else { favorites.add(id); showToast('已收藏这道菜'); }
+      try { localStorage.setItem('fridge-recipe-favorites',JSON.stringify(Array.from(favorites))); } catch(e) {}
+      $('favoriteCount').textContent=favorites.size;
+      renderRecipes();
+    }
+    function openRecipe(id) {
+      const recipe=recipes.find(item=>item.id===id); if(!recipe)return;
+      $('modalImage').src=recipe.image; $('modalImage').alt=recipe.title;
+      $('modalImage').onerror=()=>{$('modalImage').style.visibility='hidden';}; $('modalImage').style.visibility='visible';
+      $('modalContent').innerHTML='<div class="modal-title-row"><div><h2 id="modalTitle">'+escapeHtml(recipe.title)+'</h2><p>'+escapeHtml(recipe.desc)+'</p></div><button type="button" class="favorite-button modal-favorite '+(favorites.has(recipe.id)?'is-favorite':'')+'" data-favorite="'+recipe.id+'" aria-label="'+(favorites.has(recipe.id)?'取消收藏 ':'收藏 ')+escapeHtml(recipe.title)+'" aria-pressed="'+favorites.has(recipe.id)+'">'+iconHeart+'</button></div><div class="detail-line"><span>约 '+recipe.minutes+' 分钟</span><span>'+escapeHtml(recipe.level)+'</span><span>默认含盐、油等基础调味</span></div><h3>需要准备</h3><div class="detail-ingredients">'+recipe.main.map(item=>'<span><i></i>'+escapeHtml(item)+'</span>').concat(recipe.extras.map(item=>'<span>'+escapeHtml(item)+'</span>')).join('')+'</div><h3>开始制作</h3><ol class="steps">'+recipe.steps.map(step=>'<li>'+escapeHtml(step)+'</li>').join('')+'</ol>';
+      $('modalBackdrop').classList.add('open'); $('modalClose').focus();
+    }
+    function closeModal() { $('modalBackdrop').classList.remove('open'); }
+    function addIngredient() {
+      const input=$('ingredientSearch'); const name=input.value.trim();
+      if(!name) { input.focus(); showToast('先输入一个食材名称'); return; }
+      if(!ingredients.concat(customIngredients.map(value=>({name:value}))).some(item=>item.name.toLowerCase()===name.toLowerCase())) customIngredients.push(name);
+      selected.add(name); activeCategory='全部'; searchTerm=''; input.value=''; renderCategories(); renderIngredients(); renderSelected(); refreshMatches(); showToast('已把 '+name+' 加进冰箱');
+    }
+    function setToday() {
+      try { const text=new Intl.DateTimeFormat('zh-CN',{month:'long',day:'numeric',weekday:'short'}).format(new Date()); $('todayText').textContent=text; } catch(e) {}
+    }
+    renderCategories(); renderIngredients(); renderSelected(); renderRecipes(); $('favoriteCount').textContent=favorites.size; setToday();
+
+    $('categoryTabs').addEventListener('click',event=>{const button=event.target.closest('[data-category]');if(!button)return;activeCategory=button.dataset.category;renderCategories();renderIngredients();});
+    $('ingredientList').addEventListener('click',event=>{const button=event.target.closest('[data-ingredient]');if(!button)return;const name=button.dataset.ingredient;selected.has(name)?selected.delete(name):selected.add(name);renderIngredients();renderSelected();refreshMatches();});
+    $('selectedTags').addEventListener('click',event=>{const button=event.target.closest('[data-remove]');if(!button)return;selected.delete(button.dataset.remove);renderIngredients();renderSelected();refreshMatches();});
+    $('ingredientSearch').addEventListener('input',event=>{searchTerm=event.target.value;activeCategory='全部';renderCategories();renderIngredients();});
+    $('ingredientSearch').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();addIngredient();}});
+    $('addIngredient').addEventListener('click',addIngredient);
+    $('clearSelection').addEventListener('click',()=>{selected.clear();renderIngredients();renderSelected();refreshMatches();showToast('已清空食材选择');});
+    $('shuffleButton').addEventListener('click',()=>generateRecipes(true));
+    $('asideShuffle').addEventListener('click',()=>generateRecipes(true));
+    $('recipeGrid').addEventListener('click',event=>{const favorite=event.target.closest('[data-favorite]');if(favorite){toggleFavorite(favorite.dataset.favorite);return;}const detail=event.target.closest('[data-detail]');if(detail)openRecipe(detail.dataset.detail);});
+    $('modalContent').addEventListener('click',event=>{const favorite=event.target.closest('[data-favorite]');if(favorite){const id=favorite.dataset.favorite;toggleFavorite(id);openRecipe(id);}});
+    $('modalClose').addEventListener('click',closeModal);
+    $('modalBackdrop').addEventListener('click',event=>{if(event.target===$('modalBackdrop'))closeModal();});
+    document.addEventListener('keydown',event=>{if(event.key==='Escape')closeModal();});
+    $('favoritesLink').addEventListener('click',()=>{const saved=recipes.filter(recipe=>favorites.has(recipe.id));if(!saved.length){showToast('点菜谱上的爱心，就能收藏喜欢的做法');return;}currentPair=['收藏菜谱'];currentRecipes=saved;renderRecipes();$('recipesSection').scrollIntoView({behavior:'smooth',block:'start'});});
+    $('notificationButton').addEventListener('click',()=>showToast('今天没有新的厨房提醒'));
+    document.querySelectorAll('[data-nav]').forEach(button=>button.addEventListener('click',()=>{
+      document.querySelectorAll('[data-nav]').forEach(item=>item.classList.toggle('active',item===button));
+      if(button.dataset.nav==='favorites') $('favoritesLink').click();
+      else if(button.dataset.nav==='recipes') $('recipesSection').scrollIntoView({behavior:'smooth',block:'start'});
+      else if(button.dataset.nav==='fridge') window.scrollTo({top:0,behavior:'smooth'});
+      else {if(history.length){currentPair=history[0].pair;currentRecipes=history[0].recipes.map(id=>recipes.find(recipe=>recipe.id===id)).filter(Boolean);renderRecipes();$('recipesSection').scrollIntoView({behavior:'smooth',block:'start'});}else showToast('随机搭配后，这里会保留最近的组合');}
+    }));
+  </script>
+</body>
+</html>
